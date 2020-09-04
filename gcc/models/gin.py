@@ -18,10 +18,10 @@ class SELayer(nn.Module):
 
     def __init__(self, in_channels, se_channels):
         super(SELayer, self).__init__()
-
+        #
         self.in_channels = in_channels
         self.se_channels = se_channels
-
+        #
         self.encoder_decoder = nn.Sequential(
             nn.Linear(in_channels, se_channels),
             nn.ELU(),
@@ -91,12 +91,12 @@ class MLP(nn.Module):
             self.linear_or_not = False
             self.linears = torch.nn.ModuleList()
             self.batch_norms = torch.nn.ModuleList()
-
+            # 构建多层的线性模型
             self.linears.append(nn.Linear(input_dim, hidden_dim))
-            for layer in range(num_layers - 2):
+            for layer in range(num_layers - 2):#
                 self.linears.append(nn.Linear(hidden_dim, hidden_dim))
             self.linears.append(nn.Linear(hidden_dim, output_dim))
-
+            #
             for layer in range(num_layers - 1):
                 self.batch_norms.append(
                     SELayer(hidden_dim, int(np.sqrt(hidden_dim)))
