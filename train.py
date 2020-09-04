@@ -45,7 +45,7 @@ def parse_option():
     parser.add_argument("--print-freq", type=int, default=10, help="print frequency")
     parser.add_argument("--tb-freq", type=int, default=250, help="tb frequency")
     parser.add_argument("--save-freq", type=int, default=1, help="save frequency")
-    parser.add_argument("--batch-size", type=int, default=32, help="batch_size")
+    parser.add_argument("--batch-size", type=int, default=256, help="batch_size")
     parser.add_argument("--num-workers", type=int, default=12, help="num of workers to use")
     parser.add_argument("--num-copies", type=int, default=6, help="num of dataset copies that fit in memory")
     parser.add_argument("--num-samples", type=int, default=2000, help="num of samples per batch per worker")
@@ -68,7 +68,7 @@ def parse_option():
     # augmentation setting
     parser.add_argument("--aug", type=str, default="1st", choices=["1st", "2nd", "all"])
 
-    parser.add_argument("--exp", type=str, default="")
+    parser.add_argument("--exp", type=str, default="Pretrain")
 
     # dataset definition
     parser.add_argument("--dataset", type=str, default="dgl", choices=["dgl", "wikipedia", "blogcatalog", "usa_airport", "brazil_airport", "europe_airport", "cora", "citeseer", "pubmed", "kdd", "icdm", "sigir", "cikm", "sigmod", "icde", "h-index-rand-1", "h-index-top-1", "h-index"] + GRAPH_CLASSIFICATION_DSETS)
@@ -99,8 +99,8 @@ def parse_option():
     parser.add_argument("--degree-embedding-size", type=int, default=16)
 
     # specify folder
-    parser.add_argument("--model-path", type=str, default=None, help="path to save model")
-    parser.add_argument("--tb-path", type=str, default=None, help="path to tensorboard")
+    parser.add_argument("--model-path", type=str, default='models', help="path to save model")
+    parser.add_argument("--tb-path", type=str, default='tensorboard', help="path to tensorboard")
     parser.add_argument("--load-path", type=str, default=None, help="loading checkpoint at test time")
 
     # memory setting
@@ -112,7 +112,7 @@ def parse_option():
     parser.add_argument("--alpha", type=float, default=0.999, help="exponential moving average weight")
 
     # GPU setting
-    parser.add_argument("--gpu", default=None, type=int, nargs='+', help="GPU id to use.")
+    parser.add_argument("--gpu", default='0', type=int, nargs='+', help="GPU id to use.")
 
     # cross validation
     parser.add_argument("--seed", type=int, default=0, help="random seed.")
@@ -297,7 +297,7 @@ def train_finetune(
     return epoch_loss_meter.avg, epoch_f1_meter.avg
 
 
-def test_finetune(epoch, valid_loader, model, output_layer, criterion, sw, opt):
+def tes_finetune(epoch, valid_loader, model, output_layer, criterion, sw, opt):
     n_batch = len(valid_loader)
     model.eval()
     output_layer.eval()
@@ -786,7 +786,7 @@ def main(args):
         torch.cuda.empty_cache()
 
     if args.finetune:
-        valid_loss, valid_f1 = test_finetune(
+        valid_loss, valid_f1 = tes_finetune(
             epoch, valid_loader, model, output_layer, criterion, sw, args
         )
         return valid_f1
@@ -814,7 +814,7 @@ if __name__ == "__main__":
         print(f1)
         print(f"Mean = {np.mean(f1)}; Std = {np.std(f1)}")
     else:
-        args.gpu = args.gpu[0]
+        args.gpu = args.gpu
         main(args)
     # import optuna
     # def objective(trial):

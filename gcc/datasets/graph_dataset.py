@@ -55,6 +55,12 @@ class LoadBalanceGraphDataset(torch.utils.data.IterableDataset):
         assert sum(step_dist) == 1.0
         assert positional_embedding_size > 1
         self.dgl_graphs_file = dgl_graphs_file
+        # 每个图的大小[(0, 4843953),
+        #  (1, 3097165),
+        #  (2, 896305),
+        #  (3, 540486),
+        #  (4, 317080),
+        #  (5, 137969)]
         graph_sizes = dgl.data.utils.load_labels(dgl_graphs_file)[
             "graph_sizes"
         ].tolist()
@@ -64,17 +70,26 @@ class LoadBalanceGraphDataset(torch.utils.data.IterableDataset):
         # sorted graphs w.r.t its size in decreasing order
         # for each graph, assign it to the worker with least workload
         assert num_workers % num_copies == 0
+        #
         jobs = [list() for i in range(num_workers // num_copies)]
+        # workloads 每个图的size
+        #num_copies 表述数据复制，因此数据只能用num_workers // num_copies 个loads加载数据
+        #数据复制num_copies 之后刚好满足num_workers
         workloads = [0] * (num_workers // num_copies)
+        # graph size 排序
         graph_sizes = sorted(
             enumerate(graph_sizes), key=operator.itemgetter(1), reverse=True
         )
+        #wordloads 均衡图的点
         for idx, size in graph_sizes:
             argmin = workloads.index(min(workloads))
             workloads[argmin] += size
             jobs[argmin].append(idx)
+        #jobs 复制6份，jobs表示num_num_workers加载的数据
         self.jobs = jobs * num_copies
+        # total 一次多少sample
         self.total = self.num_samples * num_workers
+        #
         self.graph_transform = graph_transform
         assert aug in ("rwr", "ns")
         self.aug = aug
